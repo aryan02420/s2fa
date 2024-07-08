@@ -35,7 +35,7 @@
 //
 // The keychain is stored unencrypted in the text file $HOME/.2fa.
 //
-// Example
+// # Example
 //
 // During GitHub 2FA setup, at the “Scan this barcode with your app” step,
 // click the “enter this text code instead” link. A window pops up showing
@@ -58,7 +58,6 @@
 //	$ 2fa
 //	268346	github
 //	$
-//
 package main
 
 import (
@@ -70,7 +69,6 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -106,7 +104,7 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	k := readKeychain(filepath.Join(os.Getenv("HOME"), ".2fa"))
+	k := readTextKeychain(filepath.Join(os.Getenv("HOME"), ".2fa"))
 
 	if *flagList {
 		if flag.NArg() != 0 {
@@ -139,7 +137,7 @@ func main() {
 	k.show(name)
 }
 
-type Keychain struct {
+type TextKeychain struct {
 	file string
 	data []byte
 	keys map[string]Key
@@ -153,12 +151,12 @@ type Key struct {
 
 const counterLen = 20
 
-func readKeychain(file string) *Keychain {
-	c := &Keychain{
+func readTextKeychain(file string) *TextKeychain {
+	c := &TextKeychain{
 		file: file,
 		keys: make(map[string]Key),
 	}
-	data, err := ioutil.ReadFile(file)
+	data, err := os.ReadFile(file)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return c
@@ -206,7 +204,7 @@ func readKeychain(file string) *Keychain {
 	return c
 }
 
-func (c *Keychain) list() {
+func (c *TextKeychain) list() {
 	var names []string
 	for name := range c.keys {
 		names = append(names, name)
@@ -224,7 +222,7 @@ func noSpace(r rune) rune {
 	return r
 }
 
-func (c *Keychain) add(name string) {
+func (c *TextKeychain) add(name string) {
 	size := 6
 	if *flag7 {
 		size = 7
@@ -266,7 +264,7 @@ func (c *Keychain) add(name string) {
 	}
 }
 
-func (c *Keychain) code(name string) string {
+func (c *TextKeychain) code(name string) string {
 	k, ok := c.keys[name]
 	if !ok {
 		log.Fatalf("no such key %q", name)
@@ -296,7 +294,7 @@ func (c *Keychain) code(name string) string {
 	return fmt.Sprintf("%0*d", k.digits, code)
 }
 
-func (c *Keychain) show(name string) {
+func (c *TextKeychain) show(name string) {
 	code := c.code(name)
 	if *flagClip {
 		clipboard.WriteAll(code)
@@ -304,7 +302,7 @@ func (c *Keychain) show(name string) {
 	fmt.Printf("%s\n", code)
 }
 
-func (c *Keychain) showAll() {
+func (c *TextKeychain) showAll() {
 	var names []string
 	max := 0
 	for name, k := range c.keys {
