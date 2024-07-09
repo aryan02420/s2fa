@@ -41,10 +41,10 @@ func GetTextKeychain(file string) *TextKeychain {
 		if len(f) >= 3 && len(f[1]) == 1 && '6' <= f[1][0] && f[1][0] <= '8' {
 			var k Key
 			name := string(f[0])
-			k.digits = int(f[1][0] - '0')
+			k.Digits = int(f[1][0] - '0')
 			raw, err := decodeKey(string(f[2]))
 			if err == nil {
-				k.raw = raw
+				k.Raw = raw
 				if len(f) == 3 {
 					c.keys[name] = k
 					continue
@@ -53,9 +53,9 @@ func GetTextKeychain(file string) *TextKeychain {
 					_, err := strconv.ParseUint(string(f[3]), 10, 64)
 					if err == nil {
 						// Valid counter.
-						k.offset = offset - counterLen
+						k.Offset = offset - counterLen
 						if line[len(line)-1] == '\n' {
-							k.offset--
+							k.Offset--
 						}
 						c.keys[name] = k
 						continue
@@ -79,7 +79,7 @@ func (c *TextKeychain) List() []string {
 }
 
 func (c *TextKeychain) Set(name string, key *Key) {
-	size := key.digits
+	size := key.Digits
 
 	fmt.Fprintf(os.Stderr, "2fa key for %s: ", name)
 	text, err := bufio.NewReader(os.Stdin).ReadString('\n')

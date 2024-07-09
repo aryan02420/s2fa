@@ -79,6 +79,8 @@ import (
 	"unicode"
 
 	"github.com/atotto/clipboard"
+
+	"github.com/aryan02420/s2fa/pkg/keychain"
 )
 
 var (
@@ -104,22 +106,25 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	k := readTextKeychain(filepath.Join(os.Getenv("HOME"), ".2fa"))
+	k := keychain.GetTextKeychain(filepath.Join(os.Getenv("HOME"), ".2fa"))
 
 	if *flagList {
 		if flag.NArg() != 0 {
 			usage()
 		}
-		k.list()
-		return
-	}
-	if flag.NArg() == 0 && !*flagAdd {
-		if *flagClip {
-			usage()
+		list := k.List()
+		for _, name := range list {
+			fmt.Println(name)
 		}
-		k.showAll()
 		return
 	}
+	// if flag.NArg() == 0 && !*flagAdd {
+	// 	if *flagClip {
+	// 		usage()
+	// 	}
+	// 	k.showAll()
+	// 	return
+	// }
 	if flag.NArg() != 1 {
 		usage()
 	}
@@ -131,26 +136,33 @@ func main() {
 		if *flagClip {
 			usage()
 		}
-		k.add(name)
+		dummyKey := keychain.Key{
+			Digits: 6,
+		}
+		k.Set(name, &dummyKey)
 		return
 	}
-	k.show(name)
+	k.Get(name)
 }
 
+// delete
 type TextKeychain struct {
 	file string
 	data []byte
 	keys map[string]Key
 }
 
+// delete
 type Key struct {
 	raw    []byte
 	digits int
 	offset int // offset of counter
 }
 
+// delete
 const counterLen = 20
 
+// delete
 func readTextKeychain(file string) *TextKeychain {
 	c := &TextKeychain{
 		file: file,
@@ -204,6 +216,7 @@ func readTextKeychain(file string) *TextKeychain {
 	return c
 }
 
+// delete
 func (c *TextKeychain) list() {
 	var names []string
 	for name := range c.keys {
@@ -215,6 +228,7 @@ func (c *TextKeychain) list() {
 	}
 }
 
+// delete
 func noSpace(r rune) rune {
 	if unicode.IsSpace(r) {
 		return -1
@@ -222,6 +236,7 @@ func noSpace(r rune) rune {
 	return r
 }
 
+// delete
 func (c *TextKeychain) add(name string) {
 	size := 6
 	if *flag7 {
@@ -264,6 +279,7 @@ func (c *TextKeychain) add(name string) {
 	}
 }
 
+// port
 func (c *TextKeychain) code(name string) string {
 	k, ok := c.keys[name]
 	if !ok {
@@ -294,6 +310,7 @@ func (c *TextKeychain) code(name string) string {
 	return fmt.Sprintf("%0*d", k.digits, code)
 }
 
+// port
 func (c *TextKeychain) show(name string) {
 	code := c.code(name)
 	if *flagClip {
@@ -302,6 +319,7 @@ func (c *TextKeychain) show(name string) {
 	fmt.Printf("%s\n", code)
 }
 
+// unnecessary
 func (c *TextKeychain) showAll() {
 	var names []string
 	max := 0
@@ -322,10 +340,12 @@ func (c *TextKeychain) showAll() {
 	}
 }
 
+// delete
 func decodeKey(key string) ([]byte, error) {
 	return base32.StdEncoding.DecodeString(strings.ToUpper(key))
 }
 
+// port
 func hotp(key []byte, counter uint64, digits int) int {
 	h := hmac.New(sha1.New, key)
 	binary.Write(h, binary.BigEndian, counter)
@@ -338,6 +358,7 @@ func hotp(key []byte, counter uint64, digits int) int {
 	return int(v % d)
 }
 
+// port
 func totp(key []byte, t time.Time, digits int) int {
 	return hotp(key, uint64(t.UnixNano())/30e9, digits)
 }

@@ -10,9 +10,9 @@ import (
 )
 
 type Key struct {
-	raw    []byte
-	digits int
-	offset int // offset of counter
+	Raw    []byte
+	Digits int
+	Offset int // offset of counter
 }
 
 type Keychain interface {
@@ -35,11 +35,11 @@ func decodeKey(key string) ([]byte, error) {
 }
 
 func serializeKey(k *Key) string {
-	encodedKey := base32.StdEncoding.EncodeToString(k.raw)
+	encodedKey := base32.StdEncoding.EncodeToString(k.Raw)
 	// if err != nil {
 	// 	log.Fatalf("encoding key: %v", err)
 	// }
-	return fmt.Sprintf("%d %s", k.digits, encodedKey)
+	return fmt.Sprintf("%d %s", k.Digits, encodedKey)
 }
 
 func deserializeKey(s string) *Key {
@@ -53,13 +53,13 @@ func deserializeKey(s string) *Key {
 	if err != nil {
 		log.Fatalf("decoding key: %v", err)
 	}
-	k.digits = int(digits)
+	k.Digits = int(digits)
 
 	raw, err := decodeKey(parts[1])
 	if err != nil {
 		log.Fatalf("decoding key: %v", err)
 	}
-	k.raw = raw
+	k.Raw = raw
 
 	return k
 }
