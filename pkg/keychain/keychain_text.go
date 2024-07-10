@@ -1,14 +1,12 @@
 package keychain
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 type TextKeychain struct {
@@ -79,20 +77,9 @@ func (c *TextKeychain) List() []string {
 }
 
 func (c *TextKeychain) Set(name string, key *Key) {
-	size := key.Digits
+	serializedKey := serializeKey(key)
 
-	fmt.Fprintf(os.Stderr, "2fa key for %s: ", name)
-	text, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
-		log.Fatalf("error reading key: %v", err)
-	}
-	text = strings.Map(noSpace, text)
-	text += strings.Repeat("=", -len(text)&7) // pad to 8 bytes
-	if _, err := decodeKey(text); err != nil {
-		log.Fatalf("invalid key: %v", err)
-	}
-
-	line := fmt.Sprintf("%s %d %s", name, size, text)
+	line := fmt.Sprintf("%s %s", name, serializedKey)
 	// if *flagHotp {
 	// 	line += " " + strings.Repeat("0", 20)
 	// }

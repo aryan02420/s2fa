@@ -1,9 +1,11 @@
 package keychain
 
 import (
+	"bufio"
 	"encoding/base32"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"unicode"
@@ -62,4 +64,19 @@ func deserializeKey(s string) *Key {
 	k.Raw = raw
 
 	return k
+}
+
+func GetKeyFromStdin() []byte {
+	fmt.Fprintf(os.Stderr, "2fa key: ")
+	text, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil {
+		log.Fatalf("error reading key: %v", err)
+	}
+	text = strings.Map(noSpace, text)
+	text += strings.Repeat("=", -len(text)&7) // pad to 8 bytes
+	bytes, err := decodeKey(text)
+	if err != nil {
+		log.Fatalf("invalid key: %v", err)
+	}
+	return bytes
 }

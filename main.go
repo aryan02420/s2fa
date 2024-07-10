@@ -136,8 +136,19 @@ func main() {
 		if *flagClip {
 			usage()
 		}
+		digits := 6
+		if *flag7 {
+			digits = 7
+			if *flag8 {
+				log.Fatalf("cannot use -7 and -8 together")
+			}
+		} else if *flag8 {
+			digits = 8
+		}
+		rawKey := keychain.GetKeyFromStdin()
 		dummyKey := keychain.Key{
-			Digits: 6,
+			Digits: digits,
+			Raw:    rawKey,
 		}
 		k.Set(name, &dummyKey)
 		return
