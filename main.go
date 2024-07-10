@@ -153,7 +153,8 @@ func main() {
 		k.Set(name, &dummyKey)
 		return
 	}
-	k.Get(name)
+	otp := k.Get(name).Code()
+	fmt.Printf("%s\n", otp)
 }
 
 // delete
@@ -290,7 +291,7 @@ func (c *TextKeychain) add(name string) {
 	}
 }
 
-// port
+// delete
 func (c *TextKeychain) code(name string) string {
 	k, ok := c.keys[name]
 	if !ok {
@@ -321,7 +322,7 @@ func (c *TextKeychain) code(name string) string {
 	return fmt.Sprintf("%0*d", k.digits, code)
 }
 
-// port
+// delete
 func (c *TextKeychain) show(name string) {
 	code := c.code(name)
 	if *flagClip {
@@ -356,7 +357,7 @@ func decodeKey(key string) ([]byte, error) {
 	return base32.StdEncoding.DecodeString(strings.ToUpper(key))
 }
 
-// port
+// delete
 func hotp(key []byte, counter uint64, digits int) int {
 	h := hmac.New(sha1.New, key)
 	binary.Write(h, binary.BigEndian, counter)
@@ -369,7 +370,7 @@ func hotp(key []byte, counter uint64, digits int) int {
 	return int(v % d)
 }
 
-// port
+// delete
 func totp(key []byte, t time.Time, digits int) int {
 	return hotp(key, uint64(t.UnixNano())/30e9, digits)
 }
